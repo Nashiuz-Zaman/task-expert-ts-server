@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
 // model
-import { User } from "./../../models/User/User";
+import { User } from "../../models/User/User";
 import { UnverifiedUser } from "../../models/UnverifiedUser/UnverifiedUser";
 
 // utils
