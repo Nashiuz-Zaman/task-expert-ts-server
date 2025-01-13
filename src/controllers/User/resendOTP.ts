@@ -5,7 +5,7 @@ import { HydratedDocument } from "mongoose";
 // models and interfaces
 import {
   IUnverifiedUser,
-  UnverifiedUser,
+  UnverifiedUserModel,
 } from "../../models/UnverifiedUser/UnverifiedUser";
 
 // utils
@@ -27,7 +27,7 @@ const resendOTP = async (req: Request, res: Response): Promise<Response> => {
     const otp = generateOTP();
 
     // update db with new otp and send email to user if successful
-    const unverifiedUser = (await UnverifiedUser.findOneAndUpdate(
+    const unverifiedUser = (await UnverifiedUserModel.findOneAndUpdate(
       { email: email },
       { otp: otp },
       { new: true }

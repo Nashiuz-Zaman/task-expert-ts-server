@@ -19,7 +19,7 @@ const connectDb = async (): Promise<void> => {
          'mongodb://127.0.0.1:27017/task-expert-dev'
       );
 
-      console.log('Database connected correctly 🥫');
+      console.log('Database connected correctly ✅✅✅');
 
       connection.isConnected = true;
    } catch (err) {

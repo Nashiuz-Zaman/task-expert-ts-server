@@ -1,21 +1,18 @@
 // import jwt
-import jwt, { Secret } from "jsonwebtoken";
-import dotenv from "dotenv";
+import jwt, { Secret } from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
 // load env
 dotenv.config();
 
-export interface IPayload {
-  email: string;
-  isGoogleAccount?: boolean;
-  role?: "student" | "mentor" | "admin";
-}
+// types
+import { IPayload } from '../types/payload';
 
 export const generateToken = (
-  payload: IPayload,
-  expiresIn: string = "3d"
+   payload: IPayload,
+   expiresIn: string = '3d'
 ): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET as Secret, {
-    expiresIn: expiresIn,
-  });
+   return jwt.sign(payload, process.env.JWT_SECRET as Secret, {
+      expiresIn: expiresIn,
+   });
 };

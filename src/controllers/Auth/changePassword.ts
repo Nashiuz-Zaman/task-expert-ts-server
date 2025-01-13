@@ -1,28 +1,28 @@
 // core
-import { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 
 // models
-import { User } from "../../models/User/User";
-import { Mentor } from "../../models/Mentor/Mentor";
+import { User } from '../../models/User/User';
+
 import {
-  cleanCookie,
-  handleDefaultErr,
-  serverError,
-  setCookie,
-} from "../../utils";
-import { IEmail, sendEmail } from "../../utils/email";
+   cleanCookie,
+   handleDefaultErr,
+   serverError,
+   setCookie,
+} from '../../utils';
+import { IEmail, sendEmail } from '../../utils/email';
 
 export const changePassword = async (
-  req: Request,
-  res: Response
+   req: Request,
+   res: Response
 ): Promise<Response> => {
-  try {
-    const cookies = req.cookies;
-    const { email, role } = cookies["password-reset"];
-    const { password } = req.body;
+   try {
+      const cookies = req.cookies;
+      const { email, role } = cookies['password-reset'];
+      const { password } = req.body;
 
-    const html: string = `<html>
+      const html: string = `<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,46 +44,38 @@ export const changePassword = async (
 </body>
 </html>`;
 
-    // hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+      // hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    let record;
+      let record;
 
-    if (role === "student") {
-      record = await User.findOneAndUpdate(
-        { email },
-        { password: hashedPassword },
-        { new: true }
-      );
-    }
+      if (role === 'student') {
+         record = await User.findOneAndUpdate(
+            { email },
+            { password: hashedPassword },
+            { new: true }
+         );
+      }
 
-    if (role === "mentor") {
-      record = await Mentor.findOneAndUpdate(
-        { email },
-        { password: hashedPassword },
-        { new: true }
-      );
-    }
+      if (record?._id) {
+         const emailOptions: IEmail = {
+            from: 'support@abroad-portals.com',
+            to: email,
+            subject: 'Password was changed',
+            html,
+         };
 
-    if (record?._id) {
-      const emailOptions: IEmail = {
-        from: "support@abroad-portals.com",
-        to: email,
-        subject: "Password was changed",
-        html,
-      };
+         await sendEmail(emailOptions);
 
-      await sendEmail(emailOptions);
+         // clear the cookie
+         cleanCookie(res, 'password-reset');
+         return res.send({ status: 'success' });
+      }
 
-      // clear the cookie
-      cleanCookie(res, "password-reset");
-      return res.send({ status: "success" });
-    }
-
-    return serverError(res);
-  } catch (err) {
-    handleDefaultErr(err);
-    return serverError(res);
-  }
+      return serverError(res);
+   } catch (err) {
+      handleDefaultErr(err);
+      return serverError(res);
+   }
 };

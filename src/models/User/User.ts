@@ -1,14 +1,7 @@
 import { Schema, model } from 'mongoose';
+import { IUserDocument } from '../../types/user';
 
-interface IUser extends Document {
-   name: string;
-   email: string;
-   password: string;
-   image?: string;
-   role: string;
-}
-
-const userSchema = new Schema<IUser>({
+const userSchema = new Schema<IUserDocument>({
    name: {
       type: String,
       required: true,
@@ -19,16 +12,18 @@ const userSchema = new Schema<IUser>({
    },
    password: {
       type: String,
-      required: true,
+      select: false,
+      default: null,
    },
    image: {
       type: String,
+      default: null,
    },
-   role: {
-      type: String,
+   isGoogleAccount: {
+      type: Boolean,
       required: true,
    },
 });
 
-const UserModel = model<IUser>('User', userSchema);
+const UserModel = model<IUserDocument>('User', userSchema);
 export default UserModel;

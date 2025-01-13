@@ -1,92 +1,57 @@
-import { Request, Response } from "express";
-import { IUser, User } from "../../models/User/User";
+import { Request, Response } from 'express';
+
 import {
-  generateToken,
-  handleDefaultErr,
-  serverError,
-  setCookie,
-} from "../../utils";
-import { Mentor } from "../../models/Mentor/Mentor";
-import StudentProfile from "../../models/StudentProfile/StudentProfile";
+   generateToken,
+   handleDefaultErr,
+   serverError,
+   setCookie,
+} from '../../utils';
+
+import { IUser, IUserDocument } from '../../types/user';
+import UserModel from '../../models/User/User';
 
 export const loginGoogle = async (
-  req: Request,
-  res: Response
+   req: Request,
+   res: Response
 ): Promise<Response> => {
-  try {
-    const { email, username, photo } = req.body;
-    const filter = { email };
+   try {
+      const { email, name } = req.body;
+      const filter = { email };
+      let userToSend;
 
-    // if email registration account exists then send response accordingly
-    const userPromise = User.findOne(filter).populate("additionalData").exec();
-    const mentorPromise = Mentor.findOne(filter).exec();
+      // if user already exists send only data
+      const user = (await UserModel.findOne(filter).exec()) as IUserDocument;
 
-    const [foundUser, foundMentor] = await Promise.all([
-      userPromise,
-      mentorPromise,
-    ]);
+      // create jwt access token
+      const accessToken = generateToken(
+         {
+            email,
+            isGoogleAccount: true,
+         },
+         // jwt expires in 2 days
+         '2d'
+      );
 
-    if (foundMentor?._id) {
-      return res.status(400).send({
-        status: "error",
-        message: "Mentor account already exists, please login using email",
-      });
-    }
+      // cookie expires in 2 days
+      setCookie(res, 'access_token', accessToken, 60000 * 2880);
 
-    if (foundUser?._id && !foundUser?.isGoogleAccount) {
-      return res.status(400).send({
-        status: "error",
-        message: "Email registered account exists, please login using email",
-      });
-    }
+      if (user?._id) {
+         userToSend = user;
+      } else {
+         const newGoogleUser: IUser = {
+            email,
+            name,
+            password: null,
+            isGoogleAccount: true,
+            image: null,
+         };
 
-    // generate access token
-    const accessToken = generateToken(
-      {
-        email,
-        isGoogleAccount: true,
-        role: "student",
-      },
-      // expires in 3 days
-      "3d"
-    );
-
-    // if google user exists, just send back the user data
-    if (foundUser?._id && foundUser?.isGoogleAccount) {
-      // set cookie
-      setCookie(res, "accessToken", accessToken, 60000 * 4320);
-      return res.send({ status: "success", user: foundUser });
-    }
-
-    // if no user found in any way create a new google user
-    // 1. create studentprofile
-    const newProfile = await StudentProfile.create({});
-
-    if (newProfile?._id) {
-      // 2. create student
-      const googleUser = {
-        username,
-        email,
-        photo,
-        isGoogleAccount: true,
-        additionalData: newProfile?._id,
-      };
-
-      const newGoogleUser = await User.create(googleUser);
-      const populatedUser = await User.findById(newGoogleUser._id)
-        .populate("additionalData")
-        .exec();
-
-      if (newGoogleUser?._id && populatedUser?._id) {
-        // set cookie
-        setCookie(res, "accessToken", accessToken, 60000 * 4320);
-        return res.send({ status: "success", user: populatedUser });
+         userToSend = (await UserModel.create(newGoogleUser)) as IUserDocument;
       }
-    }
 
-    return serverError(res);
-  } catch (err) {
-    handleDefaultErr(err);
-    return serverError(res);
-  }
+      return res.send({ status: 'success', user: userToSend });
+   } catch (err) {
+      handleDefaultErr(err);
+      return serverError(res);
+   }
 };
