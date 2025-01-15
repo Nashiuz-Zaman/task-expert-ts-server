@@ -9,7 +9,7 @@ import { cleanCookie, handleDefaultErr, serverError } from '../../utils';
 import { ICustomRequest } from '../../types/customRequest';
 import { IPayload } from '../../types/payload';
 
-const appInit = async (
+export const checkForLogins = async (
    req: ICustomRequest,
    res: Response
 ): Promise<Response> => {
@@ -37,5 +37,3 @@ const appInit = async (
       return serverError(res);
    }
 };
-
-export default appInit;

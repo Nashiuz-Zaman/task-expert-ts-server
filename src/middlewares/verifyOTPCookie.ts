@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { Response, NextFunction } from 'express';
 
 // utils
-import { handleDefaultErr, serverError } from '../utils';
+import { handleDefaultErr, sendError, serverError } from '../utils';
 
 // load env
 dotenv.config();
@@ -19,27 +19,31 @@ export const verifyOTPCookie = (
 ) => {
    try {
       const cookies = req.cookies;
+      const otpCookieName = process.env.OTP_COOKIE_NAME as string;
 
       // no cookie
-      if (!cookies['otp-cookie']) {
-         return res.status(401).send({
-            status: 'error',
-            message: 'Your account has been deleted, pleaser register again',
+      if (!cookies[otpCookieName]) {
+         return sendError({
+            res,
+            message: 'Your account has been deleted, please signup again',
+            statusCode: 401,
          });
       }
 
       // invalid token
       jwt.verify(
-         cookies['otp-cookie'].accessToken,
+         cookies[otpCookieName].accessToken,
          process.env.JWT_SECRET as Secret,
          (
             err: VerifyErrors | null,
             decoded: string | JwtPayload | undefined
          ) => {
             if (err) {
-               return res
-                  .status(401)
-                  .send({ status: 'error', message: 'OTP has expired' });
+               return sendError({
+                  res,
+                  message: 'OTP has expired',
+                  statusCode: 401,
+               });
             }
 
             req.decoded = decoded;

@@ -1,49 +1,62 @@
 // core
 import { Response } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
-import { HydratedDocument } from 'mongoose';
 
-// models and interfaces
-import { CustomRequest } from '../../middlewares/verifyOTPCookie';
-import UnverifiedUserModel, {
-   IUnverifiedUser,
-} from '../../models/UnverifiedUser/UnverifiedUser';
-import UserModel, { IUser } from '../../models/User/User';
+// models and types
+import { IUnverifiedUserDocument } from '../../types/unverifiedUser';
+import UnverifiedUserModel from '../../models/UnverifiedUser/UnverifiedUser';
+import { ICustomRequest } from '../../types/customRequest';
+import { IUser, IUserDocument } from '../../types/user';
+import UserModel from '../../models/User/User';
 
 // utils
-import { cleanCookie, handleDefaultErr, serverError } from '../../utils';
+import {
+   cleanCookie,
+   generateToken,
+   handleDefaultErr,
+   sendError,
+   serverError,
+   setCookie,
+} from '../../utils';
 
 const verifyOTP = async (
-   req: CustomRequest,
+   req: ICustomRequest,
    res: Response
 ): Promise<Response> => {
    try {
       const { email } = req.decoded as JwtPayload;
-      const { otp } = req.body;
+      const { otpCode } = req.body;
+      console.log(otpCode);
 
-      // find unverified user from db
+      // 1. find unverified user from db
       const unverifiedUser = (await UnverifiedUserModel.findOne({
          email: email,
-      }).exec()) as HydratedDocument<IUnverifiedUser>;
+      }).exec()) as IUnverifiedUserDocument;
 
-      // check if otp matches with db
-      if (otp !== unverifiedUser.otp) {
-         return res
-            .status(403)
-            .send({ status: 'failure', message: 'Wrong OTP provided' });
+      // 2. check if otp matches with db
+      if (otpCode?.toUpperCase() !== unverifiedUser?.otp) {
+         return sendError({
+            res,
+            message: 'Wrong OTP provided',
+            status: 'failure',
+            statusCode: 403,
+         });
       }
 
+      // 3. Create new user if otp is successful
       const user: IUser = {
          name: unverifiedUser.name,
          email: email as string,
          password: unverifiedUser.password,
          isGoogleAccount: false,
+         image: unverifiedUser.image,
       };
+      const createUser = UserModel.create(user);
 
-      // delete unverified account of this user
+      // 4. delete unverified account of this user
       const deleteUnverified = UnverifiedUserModel.deleteOne({ email });
-      const createUser = User.create(user);
 
+      // execute both promises
       const [deletionResult, creationResult] = await Promise.all([
          deleteUnverified,
          createUser,
@@ -51,15 +64,37 @@ const verifyOTP = async (
 
       if (deletionResult?.deletedCount) {
          console.log(
-            `${unverifiedUser.firstname} has been verified, so their unverified account deleted`
+            `${unverifiedUser.name} has been verified, so their unverified account deleted`
          );
       }
 
       if (creationResult?._id) {
-         cleanCookie(res, 'otp-cookie');
+         cleanCookie(res, process.env.OTP_COOKIE_NAME as string);
+
+         const user = creationResult.toObject();
+         delete user.password;
+
+         // create jwt access token
+         const accessToken = generateToken(
+            {
+               email,
+               isGoogleAccount: false,
+            },
+            // jwt expires in 2 days
+            '2d'
+         );
+
+         // cookie expires in 2 days
+         setCookie(
+            res,
+            process.env.ACCESS_TOKEN_NAME as string,
+            accessToken,
+            60000 * 2880
+         );
 
          return res.send({
             status: 'success',
+            user,
             message: 'user verified successfully',
          });
       }

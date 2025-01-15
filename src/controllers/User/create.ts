@@ -1,6 +1,8 @@
 // core
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // model
 import UserModel from '../../models/User/User';
@@ -13,56 +15,67 @@ import {
    setCookie,
    handleDefaultErr,
    sendOTP,
+   sendError,
+   serverError,
 } from '../../utils';
+
+// types
+import {
+   IUnverifiedUser,
+   IUnverifiedUserDocument,
+} from '../../types/unverifiedUser';
 
 const create = async (req: Request, res: Response): Promise<Response> => {
    try {
-      const user = req.body;
+      const body = req.body;
 
-      // if user already exists
-      // registration won't proceed
-      const filter = { email: user.email };
-      const userRes = await UserModel.findOne(filter).exec();
+      // if user already exists, registration won't proceed
 
-      if (userRes?._id) {
-         if (userRes?.isGoogleAccount) {
-            return res.status(400).send({
-               status: 'error',
-               message:
-                  'Google user already exists, please continue with google',
+      const filter = { email: body.email };
+      const user = await UserModel.findOne(filter).exec();
+
+      if (user?._id) {
+         if (!user?.isGoogleAccount) {
+            return sendError({
+               res,
+               message: 'Account exists. Please login.',
             });
          }
 
-         return res.status(400).send({
-            status: 'failure',
-            message: 'Student account already exists, please login',
-         });
+         if (user?.isGoogleAccount) {
+            return sendError({
+               res,
+               message: 'Google account exists. Please use Google to login.',
+            });
+         }
       }
 
       // registration proceeds from here
-      // hash password
+      // 1. hash password
       const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(user.password, salt);
+      body.password = await bcrypt.hash(body.password, salt);
 
-      // generate otp
+      // 2. generate otp
       const otp = generateOTP();
 
-      // create unverified user
-      const unverifiedUser = {
-         ...user,
+      // 3. create unverified user
+      const unverifiedUser: IUnverifiedUser = {
+         name: body.name,
+         email: body.email,
+         image: null,
+         password: body.password,
          otp,
          isGoogleAccount: false,
       };
 
-      // create unverified user in db
-      const newUnverifiedUser = await UnverifiedUserModel.create(
+      // 4. create unverified user in db
+      const newUnverifiedUser = (await UnverifiedUserModel.create(
          unverifiedUser
-      );
+      )) as IUnverifiedUserDocument;
 
-      // unverified user created
-      // send otp and set cookie
+      // 5. send otp and set cookie
       if (newUnverifiedUser?._id) {
-         // generate access token for otp stage
+         // generate jwt access token for otp stage
          const accessToken = generateToken(
             {
                email: newUnverifiedUser.email,
@@ -71,44 +84,28 @@ const create = async (req: Request, res: Response): Promise<Response> => {
             '10m'
          );
 
-         // set cookie
+         // set cookie and cookie will also expire after 10 mins
          setCookie(
             res,
-            'otp-cookie',
+            process.env.OTP_COOKIE_NAME as string,
             { accessToken, email: newUnverifiedUser.email },
-            60000 * 240
+            60000 * 10
          );
 
-         await sendOTP(otp, newUnverifiedUser.email);
+         const otpSent = await sendOTP(otp, newUnverifiedUser.email);
 
-         // auto clear db after 4 hrs
-         setTimeout(async () => {
-            const filter = {
-               email: newUnverifiedUser.email,
-            };
-
-            const unverifiedUser = await UnverifiedUserModel.findOne(filter);
-
-            if (unverifiedUser?._id) {
-               const res = await UnverifiedUserModel.deleteOne(filter);
-
-               if (res?.deletedCount) {
-                  console.log(
-                     `${unverifiedUser.name}'s unverified account has been deleted`
-                  );
-               }
-            }
-         }, 60000 * 240);
-         return res.send({
-            status: 'success',
-            message: 'OTP sent successfully',
-         });
+         if (otpSent) {
+            return res.send({
+               status: 'success',
+               message: 'OTP sent successfully',
+            });
+         }
       }
 
-      return res.status(400).send({ status: 'failure' });
+      return serverError(res);
    } catch (error) {
       handleDefaultErr(error);
-      return res.status(500).send({ status: 'error' });
+      return serverError(res);
    }
 };
 

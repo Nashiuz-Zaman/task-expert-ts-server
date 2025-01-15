@@ -1,20 +1,17 @@
 // core
 import jwt, { Secret, JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 
 // utils
 import { cleanCookie, handleDefaultErr, serverError } from '../utils';
+import { ICustomRequest } from '../types/customRequest';
 
 // load env
 dotenv.config();
 
-export interface CustomRequest extends Request {
-   decoded?: string | JwtPayload | undefined;
-}
-
 export const verifyAccessToken = async (
-   req: CustomRequest,
+   req: ICustomRequest,
    res: Response,
    next: NextFunction
 ) => {
@@ -22,13 +19,13 @@ export const verifyAccessToken = async (
       const cookies = req.cookies;
 
       // no cookie
-      if (!cookies["access_token"]) {
+      if (!cookies[process.env.ACCESS_TOKEN_NAME as string]) {
          return res.send({ status: 'failure' });
       }
 
       // jwt check
       jwt.verify(
-         cookies["access_token"],
+         cookies[process.env.ACCESS_TOKEN_NAME as string],
          process.env.JWT_SECRET as Secret,
          (
             err: VerifyErrors | null,
@@ -36,7 +33,7 @@ export const verifyAccessToken = async (
          ) => {
             // invalid token so delete the cookie
             if (err) {
-               cleanCookie(res, 'access_token');
+               cleanCookie(res, process.env.ACCESS_TOKEN_NAME as string);
                return res.send({ status: 'failure' });
             }
 

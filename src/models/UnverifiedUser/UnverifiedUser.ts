@@ -1,12 +1,7 @@
 import { Schema, model } from 'mongoose';
-import { IUser } from '../User/User';
+import { IUnverifiedUserDocument } from '../../types/unverifiedUser';
 
-export interface IUnverifiedUser extends IUser, Document {
-   otp: string;
-   otpExpires: Date;
-}
-
-const unverifiedUserSchema: Schema = new Schema<IUnverifiedUser>({
+const unverifiedUserSchema: Schema = new Schema<IUnverifiedUserDocument>({
    name: {
       type: String,
       required: true,
@@ -22,19 +17,14 @@ const unverifiedUserSchema: Schema = new Schema<IUnverifiedUser>({
    image: {
       type: String,
    },
-   role: {
-      type: String,
-      required: true,
-   },
    isGoogleAccount: {
       type: Boolean,
       required: true,
    },
    otp: { type: String, require: true },
-   otpExpires: { type: Date, required: true },
 });
 
-const UnverifiedUserModel = model<IUnverifiedUser>(
+const UnverifiedUserModel = model<IUnverifiedUserDocument>(
    'UnverifiedUser',
    unverifiedUserSchema
 );

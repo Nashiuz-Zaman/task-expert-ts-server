@@ -1,125 +1,83 @@
 // core
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
 // models
-import { User } from "../../models/User/User";
-import { Mentor } from "../../models/Mentor/Mentor";
+import UserModel from '../../models/User/User';
 
 // utils
 import {
-  compareHashed,
-  generateToken,
-  handleDefaultErr,
-  serverError,
-  setCookie,
-} from "../../utils";
+   compareHashed,
+   generateToken,
+   handleDefaultErr,
+   sendError,
+   serverError,
+   setCookie,
+} from '../../utils';
+import { IUserDocument } from '../../types/user';
 
 export const loginEmail = async (
-  req: Request,
-  res: Response
+   req: Request,
+   res: Response
 ): Promise<Response> => {
-  try {
-    const { email, password } = req.body;
+   try {
+      const { email, password } = req.body;
+      console.log(email, password);
 
-    const checkUsers = User.findOne({ email: email })
-      .populate("additionalData")
-      .exec();
-    const checkMentors = Mentor.findOne({ email: email })
-      .populate("additionalData")
-      .exec();
+      const user = (await UserModel.findOne({
+         email,
+      })
+         .select('+password')
+         .exec()) as IUserDocument;
 
-    const [user, mentor] = await Promise.all([checkUsers, checkMentors]);
-
-    if (!user && !mentor) {
-      return res
-        .status(400)
-        .send({ status: "failure", message: "Invalid email or password" });
-    }
-
-    // if student login
-    if (user?._id) {
-      // check if students account is a google account
-      if (user?.isGoogleAccount) {
-        return res
-          .status(400)
-          .send({ status: "failure", message: "Please use your Google login" });
+      if (!user) {
+         return sendError({ res, message: 'Invalid email or password' });
       }
 
-      const isPasswordValid: boolean = await compareHashed(
-        password,
-        user.password as string
-      );
+      if (user?._id) {
+         // check if students account is a google account
+         if (user?.isGoogleAccount) {
+            return sendError({
+               res,
+               message: 'Google account exists. Please use Google to login',
+            });
+         }
 
-      if (!isPasswordValid) {
-        return res.status(400).send({ message: "Invalid email or password" });
+         const isPasswordValid: boolean = await compareHashed(
+            password,
+            user?.password as string
+         );
+
+         if (!isPasswordValid) {
+            return sendError({ res, message: 'Invalid email or password' });
+         }
+
+         // if password valid, then generate jwt token and cookie for 2 days
+         const accessToken = generateToken(
+            {
+               email: user.email,
+               isGoogleAccount: false,
+            },
+            '2d'
+         );
+
+         // set cookie for 2 days
+         setCookie(
+            res,
+            process.env.ACCESS_TOKEN_NAME as string,
+            accessToken,
+            60000 * 2880
+         );
+
+         return res.send({
+            status: 'success',
+            user,
+            message: 'Login successful',
+         });
       }
 
-      // if password valid, then generate jwt token for 3 days
-      const accessToken = generateToken(
-        {
-          email: user.email,
-          isGoogleAccount: false,
-          role: "student",
-        },
-        "3d"
-      );
-
-      // set cookie for 3 days
-      setCookie(res, "accessToken", accessToken, 60000 * 4320);
-
-      // remove password from response
-      user.password = "";
-
-      return res.send({
-        status: "success",
-        user: user,
-        message: "Login successful",
-      });
-    }
-
-    // if mentor login
-    if (mentor?._id) {
-      if (!mentor?.approved) {
-        return res
-          .status(400)
-          .send({ status: "failure", message: "Mentor is not approved yet" });
-      }
-
-      const isPasswordValid: boolean = await compareHashed(
-        password,
-        mentor.password as string
-      );
-
-      if (!isPasswordValid) {
-        return res.status(400).send({ message: "Invalid email or password" });
-      }
-
-      // if password valid, then generate jwt token for 3 days
-      const accessToken = generateToken(
-        {
-          email: mentor.email,
-          isGoogleAccount: false,
-          role: "mentor",
-        },
-        "3d"
-      );
-
-      // set cookie for 3 days
-      setCookie(res, "accessToken", accessToken, 60000 * 4320);
-
-      // remove password from response
-      mentor.password = "";
-
-      return res.send({
-        status: "success",
-        user: mentor,
-        message: "Login successful",
-      });
-    }
-
-    return serverError(res);
-  } catch (err) {
-    handleDefaultErr(err);
-    return serverError(res);
-  }
+      return serverError(res);
+   } catch (err) {
+      handleDefaultErr(err);
+      return serverError(res);
+   }
 };

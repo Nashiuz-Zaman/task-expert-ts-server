@@ -1,30 +1,27 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { IPinnedTaskDocument } from '../../types/pinnedTask';
 
-interface IPinnedTask extends Document {
-  title: string;
-  taskId: string;
-  email: string;
-  lastUpdated: Date;
-}
-
-const pinnedTaskSchema = new Schema<IPinnedTask>({
-  title: {
-    type: String,
-    required: true,
-  },
-  taskId: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  lastUpdated: {
-    type: Date,
-    required: true,
-  },
+const pinnedTaskSchema = new Schema<IPinnedTaskDocument>({
+   title: {
+      type: String,
+      required: true,
+   },
+   taskId: {
+      type: String,
+      required: true,
+   },
+   email: {
+      type: String,
+      required: true,
+   },
+   lastUpdated: {
+      type: Date,
+      required: true,
+   },
 });
 
-const PinnedTaskModel = model<IPinnedTask>('PinnedTask', pinnedTaskSchema);
+const PinnedTaskModel = model<IPinnedTaskDocument>(
+   'PinnedTask',
+   pinnedTaskSchema
+);
 export default PinnedTaskModel;

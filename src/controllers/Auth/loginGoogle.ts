@@ -15,7 +15,7 @@ export const loginGoogle = async (
    res: Response
 ): Promise<Response> => {
    try {
-      const { email, name } = req.body;
+      const { email, name, image } = req.body;
       const filter = { email };
       let userToSend;
 
@@ -33,7 +33,12 @@ export const loginGoogle = async (
       );
 
       // cookie expires in 2 days
-      setCookie(res, 'access_token', accessToken, 60000 * 2880);
+      setCookie(
+         res,
+         process.env.ACCESS_TOKEN_NAME as string,
+         accessToken,
+         60000 * 2880
+      );
 
       if (user?._id) {
          userToSend = user;
@@ -43,7 +48,7 @@ export const loginGoogle = async (
             name,
             password: null,
             isGoogleAccount: true,
-            image: null,
+            image,
          };
 
          userToSend = (await UserModel.create(newGoogleUser)) as IUserDocument;

@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 export interface IUser {
    name: string;
    email: string;
-   password: string | null;
+   password?: string | null;
    image: string | null;
    isGoogleAccount: boolean;
 }
