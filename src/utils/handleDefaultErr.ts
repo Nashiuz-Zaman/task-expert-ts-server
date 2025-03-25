@@ -1,4 +1,4 @@
-import { AppError } from "../classes/AppError";
+import { AppError } from "../app/classes/AppError";
 
 export const handleDefaultErr = (err: unknown): void => {
   if (err instanceof Error) {

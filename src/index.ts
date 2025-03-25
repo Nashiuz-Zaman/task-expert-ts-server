@@ -10,6 +10,15 @@ dotenv.config();
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
+// Graceful shutdown
+const gracefulShutdown = () => {
+   console.log('Server shutting down...');
+   server.close(() => {
+      console.log('✅ Server closed. Exiting process.');
+      process.exit(0);
+   });
+};
+
 // Initialize server
 const initServer = async (): Promise<void> => {
    await connectDb();
@@ -19,6 +28,10 @@ const initServer = async (): Promise<void> => {
          `- Server working\n- Port: ${port}\n- Environment: ${process.env.NODE_ENV}\n- Client Domain: ${clientDomain}\n- Client URL: ${clientUrl}`
       );
    });
+
+   // Handle graceful shutdown
+   process.on('SIGINT', gracefulShutdown);
+   process.on('SIGTERM', gracefulShutdown);
 };
 
 initServer();

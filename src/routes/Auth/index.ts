@@ -9,7 +9,7 @@ import {
    loginEmail,
    loginGoogle,
    logout,
-} from '../../controllers/Auth';
+} from '../../app/modules/auth/controller';
 
 // import { forgetPassword } from "../../controllers/Auth/forgetPassword";
 // import { changePassword } from "../../controllers/Auth/changePassword";

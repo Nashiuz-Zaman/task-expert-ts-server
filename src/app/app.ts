@@ -1,5 +1,5 @@
 import express, { Express, NextFunction, Request, Response } from "express";
-import { AppError } from "../classes/AppError";
+import { AppError } from "./classes/AppError";
 import { errorHandler, initialMiddlewares } from "../middlewares";
 import { initRoutes } from "../routes";
 import { config } from "dotenv";
