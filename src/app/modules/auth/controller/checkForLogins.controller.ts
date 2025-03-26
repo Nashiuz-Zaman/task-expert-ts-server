@@ -6,8 +6,8 @@ import UserModel from '../../models/User/User';
 
 // utils
 import { cleanCookie, handleDefaultErr, serverError } from '../../../../utils';
-import { ICustomRequest } from '../../../../types/customRequest';
-import { IPayload } from '../../../../types/payload';
+import { ICustomRequest } from '../../../../shared/type/customRequest';
+import { IPayload } from '../../../../shared/type/payload';
 
 export const checkForLogins = async (
    req: ICustomRequest,

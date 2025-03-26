@@ -1,9 +1,8 @@
 // core
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
 import { handleDefaultErr } from './handleDefaultErr';
-import { SendEmail } from '../types/sendEmail';
+import { SendEmail } from '../shared/type/email';
+import { config } from '../config/env';
 
 export const sendEmail: SendEmail = async emailDetails => {
    try {
@@ -12,8 +11,8 @@ export const sendEmail: SendEmail = async emailDetails => {
          host: 'smtp.gmail.com',
          port: 465,
          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            user: config.user,
+            pass: config.appPass,
          },
          tls: {
             rejectUnauthorized: false,

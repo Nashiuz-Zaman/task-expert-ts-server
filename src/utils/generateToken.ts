@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // types
-import { IPayload } from '../types/payload';
+import { IPayload } from '../shared/type/payload';
 
 export const generateToken = (
    payload: IPayload,

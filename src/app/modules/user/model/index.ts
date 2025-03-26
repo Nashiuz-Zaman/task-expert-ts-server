@@ -1,30 +1,12 @@
 import { Schema, model } from 'mongoose';
 import { IUserDocument } from '../type';
+import baseUser from '../../base/model/baseUser';
 
 const userSchema = new Schema<IUserDocument>(
    {
-      name: {
-         type: String,
-         required: true,
-      },
-      email: {
-         type: String,
-         required: true,
-      },
-      password: {
-         type: String,
-         select: false,
-         default: undefined
-      },
-      image: {
-         type: String,
-         default: undefined
-      },
-      socialMediaAccountType: {
-         type: String,
-         enum: ['google', 'facebook'],
-         default: undefined
-      },
+      ...baseUser,
+
+      image: { type: String, default: undefined },
    },
    {
       toJSON: { versionKey: false },

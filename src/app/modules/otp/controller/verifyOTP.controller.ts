@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
 
 // models and types
-import { ICustomRequest } from '../../../../types/customRequest';
+import { ICustomRequest } from '../../../../shared/type/customRequest';
 import { IUser } from '../../user/type';
 
 // utils

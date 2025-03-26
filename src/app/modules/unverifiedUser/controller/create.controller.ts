@@ -16,13 +16,13 @@ import {
 } from '../../../../utils';
 
 // types
-import { IUnverifiedUser } from '../../unverifiedUser/type';
+import { IUnverifiedUser } from '../type';
 
 // service
-import { createUnverifiedUserService } from '../../unverifiedUser/service';
-import { getUserService } from '../service/get.service';
+import { createUnverifiedUserService } from '../service/create.service';
+import { getUserService } from '../../user/service/get.service';
 
-export const createUserController = async (
+export const createUnverifiedUserController = async (
    req: Request,
    res: Response
 ): Promise<Response> => {
@@ -33,19 +33,18 @@ export const createUserController = async (
       const user = await getUserService(body?.email, false);
 
       if (user?._id) {
-         if (!user?.socialMediaAccountType) {
-            return sendError({
-               res,
-               message: 'Account exists. Please login.',
-            });
-         }
-
-         if (user?.socialMediaAccountType) {
-            return sendError({
-               res,
-               message: `${user?.socialMediaAccountType} account exists. Please use Google to login.`,
-            });
-         }
+         // if (!user?.socialMediaAccountType) {
+         //    return sendError({
+         //       res,
+         //       message: 'Account exists. Please login.',
+         //    });
+         // }
+         // if (user?.socialMediaAccountType) {
+         //    return sendError({
+         //       res,
+         //       message: `${user?.socialMediaAccountType} account exists. Please use Google to login.`,
+         //    });
+         // }
       }
 
       // registration proceeds from here

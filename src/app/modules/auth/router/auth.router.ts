@@ -1,15 +1,10 @@
 // imports
 import { Router } from 'express';
-import { verifyAccessToken } from './../../middlewares';
+import { verifyAccessToken } from '../../../middlewares';
 import multer from 'multer';
 
 // controller
-import {
-   checkForLogins,
-   loginEmail,
-   loginGoogle,
-   logout,
-} from '../../app/modules/auth/controller';
+import { checkForLogins, loginEmail, loginGoogle, logout } from '../controller';
 
 // import { forgetPassword } from "../../controllers/Auth/forgetPassword";
 // import { changePassword } from "../../controllers/Auth/changePassword";

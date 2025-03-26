@@ -10,8 +10,8 @@ import {
    handleDefaultErr,
    serverError,
    setCookie,
-} from '../../utils';
-import { IEmail, sendEmail } from '../../utils/email';
+} from '../../../../utils';
+import { IEmail, sendEmail } from '../../../../utils/email';
 
 export const changePassword = async (
    req: Request,

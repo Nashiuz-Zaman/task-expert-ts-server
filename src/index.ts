@@ -1,14 +1,11 @@
-import dotenv from 'dotenv';
 import http from 'http';
 import app, { clientDomain, clientUrl } from './app/app';
-import connectDb from './db/connectDb';
-
-// Load environment variables
-dotenv.config();
+import { connectDb } from './config/db';
+import { config } from './config/env';
 
 // Create server and define port
 const server = http.createServer(app);
-const port = process.env.PORT || 5000;
+const port = config.port
 
 // Graceful shutdown
 const gracefulShutdown = () => {
@@ -23,11 +20,16 @@ const gracefulShutdown = () => {
 const initServer = async (): Promise<void> => {
    await connectDb();
 
-   server.listen(port, () => {
-      console.log(
-         `- Server working\n- Port: ${port}\n- Environment: ${process.env.NODE_ENV}\n- Client Domain: ${clientDomain}\n- Client URL: ${clientUrl}`
-      );
-   });
+   try {
+      app.listen(port, () => {
+         console.log(
+            `- Server working\n- Port: ${port}\n- Environment: ${config.environment}\n- Client Domain: ${clientDomain}\n- Client URL: ${clientUrl}`
+         );
+      });
+   } catch (error) {
+      console.error(`Server failed ❌❌\n${error}`);
+      process.exit(1);
+   }
 
    // Handle graceful shutdown
    process.on('SIGINT', gracefulShutdown);

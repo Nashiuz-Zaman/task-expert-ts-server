@@ -1,11 +1,8 @@
 import { Document } from 'mongoose';
+import { IBaseUser } from '../../base/type/baseUser';
 
-export interface IUser {
-   name: string;
-   email: string;
-   password?: string;
+export interface IUser extends IBaseUser {
    image?: string;
-   socialMediaAccountType?: 'google' | 'facebook';
 }
 
 export type IUserDocument = IUser & Document;

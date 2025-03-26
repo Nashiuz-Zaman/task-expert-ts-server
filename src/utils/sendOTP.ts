@@ -1,4 +1,4 @@
-import { IEmail } from '../types/sendEmail';
+import { IEmail } from '../shared/type/email';
 import { sendEmail } from './email';
 
 export const sendOTP = async (

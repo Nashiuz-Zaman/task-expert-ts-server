@@ -1,7 +1,7 @@
 import { Document } from 'mongoose';
-import { IUser } from '../../user/type';
+import { IBaseUser } from '../../base/type/baseUser';
 
-export interface IUnverifiedUser extends IUser {
+export interface IUnverifiedUser extends IBaseUser {
    otp: string;
 }
 

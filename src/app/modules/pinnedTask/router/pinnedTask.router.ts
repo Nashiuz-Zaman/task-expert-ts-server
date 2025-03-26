@@ -3,12 +3,12 @@ import express from 'express';
 
 // controller
 // import addPinnedTask from '../../api/pinnedTask/controllers/addPinnedTask.js';
-import getPinnedTasks from '../../controllers/PinnedTask/getPinnedTasks';
+import getPinnedTasks from '../controller/getPinnedTasks';
 
 // import removePinnedTask from '../../api/pinnedTask/controllers/removePinnedTask.js';
 
 // middlewares
-import { verifyAccessToken } from '../../middlewares';
+import { verifyAccessToken } from '../../../middlewares';
 
 // create router
 const pinnedTaskRouter = express.Router();

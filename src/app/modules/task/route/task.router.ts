@@ -2,14 +2,14 @@
 import express from 'express';
 
 // controller
-import { getTasks, createTaskController } from '../../controllers/Task';
+import { getTasks, createTaskController } from '../controller';
 // import updateTask from './../../api/task/controllers/updateTask.js';
 // import deleteTask from './../../api/task/controllers/deleteTask.js';
 
 // import editTask from './../../api/task/controllers/editTask.js';
 
 // middlewares
-import { verifyAccessToken } from '../../middlewares';
+import { verifyAccessToken } from '../../../middlewares';
 
 // create router
 const taskRouter = express.Router();

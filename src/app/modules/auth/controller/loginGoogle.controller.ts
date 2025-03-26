@@ -7,8 +7,8 @@ import {
    setCookie,
 } from '../../../../utils';
 
-import { IUser, IUserDocument } from '../../types/user';
-import UserModel from '../../models/User/User';
+import UserModel from '../../user/model';
+import { IUser, IUserDocument } from '../../user/type';
 
 export const loginGoogle = async (
    req: Request,
@@ -26,7 +26,6 @@ export const loginGoogle = async (
       const accessToken = generateToken(
          {
             email,
-            isGoogleAccount: true,
          },
          // jwt expires in 2 days
          '2d'
@@ -46,8 +45,6 @@ export const loginGoogle = async (
          const newGoogleUser: IUser = {
             email,
             name,
-            password: null,
-            isGoogleAccount: true,
             image,
          };
 

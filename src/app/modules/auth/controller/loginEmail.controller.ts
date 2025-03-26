@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 
 // models
-import UserModel from '../../models/User/User';
+import UserModel from '../../user/model';
 
 // utils
 import {
@@ -13,7 +13,7 @@ import {
    serverError,
    setCookie,
 } from '../../../../utils';
-import { IUserDocument } from '../../types/user';
+import { IUserDocument } from '../../user/type';
 
 export const loginEmail = async (
    req: Request,
@@ -35,12 +35,12 @@ export const loginEmail = async (
 
       if (user?._id) {
          // check if students account is a google account
-         if (user?.isGoogleAccount) {
-            return sendError({
-               res,
-               message: 'Google account exists. Please use Google to login',
-            });
-         }
+         // if (user?.) {
+         //    return sendError({
+         //       res,
+         //       message: 'Google account exists. Please use Google to login',
+         //    });
+         // }
 
          const isPasswordValid: boolean = await compareHashed(
             password,
@@ -55,7 +55,6 @@ export const loginEmail = async (
          const accessToken = generateToken(
             {
                email: user.email,
-               isGoogleAccount: false,
             },
             '2d'
          );
